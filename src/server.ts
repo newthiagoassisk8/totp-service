@@ -44,9 +44,11 @@ const app = createApp();
 
 app.use(
   defineEventHandler((event) => {
+    const allowedOrigin = process.env.CORS_ORIGIN ?? '*';
     const didHandle = handleCors(event, {
-      origin: '*',
+      origin: allowedOrigin,
       methods: ['GET', 'PATCH', 'PUT', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'Authorization'],
       preflight: {
         statusCode: 204,
       },
