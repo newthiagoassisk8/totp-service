@@ -51,7 +51,17 @@ const allowedOrigins = (
 function getCorsOrigin(requestOrigin?: string) {
   if (allowedOrigins.includes('*')) return '*';
   if (!requestOrigin) return '';
+  if (isAllowedVercelSubdomain(requestOrigin)) return requestOrigin;
   return allowedOrigins.includes(requestOrigin) ? requestOrigin : '';
+}
+
+function isAllowedVercelSubdomain(requestOrigin: string) {
+  try {
+    const url = new URL(requestOrigin);
+    return url.hostname.endsWith('.vercel.app');
+  } catch {
+    return false;
+  }
 }
 
 const app = createApp();
