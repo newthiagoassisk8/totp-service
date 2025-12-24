@@ -51,7 +51,17 @@ const allowedOrigins = (
 function getCorsOrigin(requestOrigin?: string) {
   if (allowedOrigins.includes('*')) return '*';
   if (!requestOrigin) return '';
+  if (isAllowedVercelSubdomain(requestOrigin)) return requestOrigin;
   return allowedOrigins.includes(requestOrigin) ? requestOrigin : '';
+}
+
+function isAllowedVercelSubdomain(requestOrigin: string) {
+  try {
+    const url = new URL(requestOrigin);
+    return url.hostname.endsWith('.vercel.app');
+  } catch {
+    return false;
+  }
 }
 
 const app = createApp();
@@ -152,4 +162,3 @@ const host = process.env.HOST ?? '0.0.0.0';
 createServer(toNodeListener(app)).listen(port, host, () => {
   console.log(`TOTP service listening on http://${host}:${port}`);
 });
-
