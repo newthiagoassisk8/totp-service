@@ -3,7 +3,6 @@ import {
   createApp,
   defineEventHandler,
   getQuery,
-  handleCors,
   readBody,
   toNodeListener,
 } from 'h3';
@@ -40,21 +39,47 @@ async function getCode(uid: string) {
   };
 }
 
+const allowedOrigins = (
+  process.env.CORS_ORIGINS ??
+  process.env.CORS_ORIGIN ??
+  'https://totp-generator-e27b.vercel.app'
+)
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+function getCorsOrigin(requestOrigin?: string) {
+  if (allowedOrigins.includes('*')) return '*';
+  if (!requestOrigin) return '';
+  return allowedOrigins.includes(requestOrigin) ? requestOrigin : '';
+}
+
 const app = createApp();
 
 app.use(
-  defineEventHandler((event) => {
-    const allowedOrigin = process.env.CORS_ORIGIN ?? '*';
-    const didHandle = handleCors(event, {
-      origin: allowedOrigin,
-      methods: ['GET', 'PATCH', 'PUT', 'OPTIONS'],
-      allowHeaders: ['Content-Type', 'Authorization'],
-      preflight: {
-        statusCode: 204,
-      },
-    });
+  defineEventHandler((event: any) => {
+    const requestOrigin =
+      typeof event.node.req.headers.origin === 'string'
+        ? event.node.req.headers.origin
+        : undefined;
+    const corsOrigin = getCorsOrigin(requestOrigin);
 
-    if (didHandle) {
+    if (corsOrigin) {
+      event.node.res.setHeader('Access-Control-Allow-Origin', corsOrigin);
+      event.node.res.setHeader('Vary', 'Origin');
+    }
+    event.node.res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET, PATCH, PUT, OPTIONS'
+    );
+    event.node.res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization'
+    );
+    event.node.res.setHeader('Access-Control-Max-Age', '86400');
+
+    if (event.node.req.method === 'OPTIONS') {
+      event.node.res.statusCode = 204;
       return '';
     }
   })
@@ -62,7 +87,7 @@ app.use(
 
 app.use(
   '/api/totp',
-  defineEventHandler(async (event) => {
+  defineEventHandler(async (event: any) => {
     const { uid } = getQuery(event);
 
     if (event.node.req.method === 'PATCH' || event.node.req.method === 'PUT') {
@@ -127,3 +152,4 @@ const host = process.env.HOST ?? '0.0.0.0';
 createServer(toNodeListener(app)).listen(port, host, () => {
   console.log(`TOTP service listening on http://${host}:${port}`);
 });
+
