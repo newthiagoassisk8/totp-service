@@ -1,6 +1,10 @@
 import { createServer } from 'node:http';
+
+import dotenv from 'dotenv';
 import { createApp, defineEventHandler, getQuery, readBody, toNodeListener } from 'h3';
 import { TOTP } from 'totp-generator';
+
+dotenv.config();
 
 const TOTPKeys: Record<string, any> = {
     item1: {
@@ -33,7 +37,8 @@ async function getCode(uid: string) {
     };
 }
 
-const allowedOrigins = (process.env.CORS_ORIGINS ?? process.env.CORS_ORIGIN ?? '*')
+const allowedOrigins = String(process.env.CORS_ALLOWED_ORIGINS || '*')
+    .trim()
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
@@ -154,7 +159,7 @@ app.use(
     })
 );
 
-const port = Number(process.env.PORT ?? 3001);
+const port = Number(process.env.PORT) || 3001;
 const host = process.env.HOST ?? '0.0.0.0';
 createServer(toNodeListener(app)).listen(port, host, () => {
     console.log(`TOTP service listening on http://${host}:${port}`);
