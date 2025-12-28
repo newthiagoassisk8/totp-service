@@ -1,13 +1,4 @@
 {
-    "version": "7",
-    "dialect": "postgresql",
-    "entries": [
-        {
-            "idx": 0,
-            "version": "7",
-            "when": 1766720611250,
-            "tag": "0000_rich_doorman",
-            "breakpoints": true
-        }
-    ]
+    "version": "5",
+    "entries": []
 }

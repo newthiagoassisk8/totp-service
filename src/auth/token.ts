@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import '../dotenv-loader.js';
 
 import { eq } from 'drizzle-orm';
 

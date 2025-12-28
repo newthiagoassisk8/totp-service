@@ -2,43 +2,22 @@ import './dotenv-loader.js';
 
 import { createServer } from 'node:http';
 
-import { createApp, defineEventHandler, getQuery, readBody, toNodeListener } from 'h3';
-import { TOTP } from 'totp-generator';
+import { createApp, defineEventHandler, toNodeListener } from 'h3';
 
-/**
- * In-memory demo data (temporary)
- */
-const TOTPKeys: Record<string, any> = {
-    item1: {
-        label: 'Demo 1 - 1 digitos',
-        icon: null,
-        key: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-        opts: { digits: 6, period: 30 },
-    },
-    item2: {
-        label: 'Demo 2 - 8 digitos',
-        icon: null,
-        key: 'JBSWY3DPEHPK3PXP',
-        opts: { digits: 6, algorithm: 'SHA-256', period: 30 },
-    },
-};
+import createToken from './handlers/auth/create-token.js';
+import login from './handlers/auth/login.js';
+import register from './handlers/auth/register.js';
+import revokeToken from './handlers/auth/revoke-token.js';
+import userInfo from './handlers/auth/user-info.js';
+import globalErrorHandler from './handlers/core/globalErrorHandler.js';
+import exportTotps from './handlers/management/export.js';
+import importTotps from './handlers/management/import.js';
+import manageTotp from './handlers/management/totp.js';
+import genPublicTotpCode from './handlers/totp/gen-public-totp-code.js';
+import listTotp from './handlers/totp/list-codes.js';
+import { rateLimit } from './middleware/rate-limit.js';
 
-async function getCode(uid: string) {
-    const data = TOTPKeys[uid];
-    if (!data) return null;
-
-    const { otp, expires } = await TOTP.generate(data.key, data.opts);
-
-    return {
-        uid,
-        label: data.label,
-        otp,
-        expires,
-        now: Date.now(),
-        expiresDate: new Date(expires),
-        digits: data.opts.digits,
-    };
-}
+const app = createApp();
 
 /**
  * CORS
@@ -64,10 +43,7 @@ function getCorsOrigin(requestOrigin?: string) {
     return allowedOrigins.includes(requestOrigin) ? requestOrigin : '';
 }
 
-/**
- * App
- */
-const app = createApp();
+app.use(globalErrorHandler);
 
 /**
  * Global CORS middleware
@@ -83,7 +59,7 @@ app.use(
             event.node.res.setHeader('Vary', 'Origin');
         }
 
-        event.node.res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, PUT, OPTIONS');
+        event.node.res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
         event.node.res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         event.node.res.setHeader('Access-Control-Max-Age', '86400');
 
@@ -95,69 +71,31 @@ app.use(
 );
 
 /**
- * /api/totp
+ * Rate limiting
  */
-app.use(
-    '/api/totp',
-    defineEventHandler(async (event) => {
-        const { uid } = getQuery(event);
+app.use(defineEventHandler(rateLimit(120)));
 
-        if (event.node.req.method === 'PATCH' || event.node.req.method === 'PUT') {
-            const body = await readBody(event);
+/**
+ * Routes
+ */
 
-            const bodyUid = body?.uid;
-            const bodyLabel = body?.label;
-            const bodyDigits = body?.digits;
+// Auth routes (public)
+app.use('/api/auth/register', register);
+app.use('/api/auth/login', login);
+app.use('/api/auth/token', createToken);
+app.use('/api/auth/revoke', revokeToken);
+app.use('/api/auth/user', userInfo);
 
-            if (!bodyUid || typeof bodyUid !== 'string') {
-                event.node.res.statusCode = 400;
-                return { error: 'uid is required' };
-            }
+// TOTP routes (protected)
+app.use('/api/totp', listTotp);
 
-            const item = TOTPKeys[bodyUid];
-            if (!item) {
-                event.node.res.statusCode = 404;
-                return { error: 'uid not found' };
-            }
+// TOTP public routes (public not auth required)
+app.use('/api/public/generate-totp-code', genPublicTotpCode);
 
-            let updated = false;
-
-            if (bodyLabel !== undefined) {
-                if (typeof bodyLabel !== 'string' || bodyLabel.trim().length === 0) {
-                    event.node.res.statusCode = 400;
-                    return { error: 'label must be a non-empty string' };
-                }
-
-                item.label = bodyLabel;
-                updated = true;
-            }
-
-            if (bodyDigits !== undefined) {
-                const digits = Number(bodyDigits);
-                if (!Number.isInteger(digits) || digits <= 0) {
-                    event.node.res.statusCode = 400;
-                    return { error: 'digits must be a positive integer' };
-                }
-
-                item.opts = { ...item.opts, digits };
-                updated = true;
-            }
-
-            if (!updated) {
-                event.node.res.statusCode = 400;
-                return { error: 'no updatable fields provided' };
-            }
-
-            return getCode(bodyUid);
-        }
-
-        if (uid) {
-            return getCode(uid as string);
-        }
-
-        return Promise.all(Object.keys(TOTPKeys).map((id) => getCode(id)));
-    })
-);
+// Management routes (protected)
+app.use('/api/management/totp', manageTotp);
+app.use('/api/management/export', exportTotps);
+app.use('/api/management/import', importTotps);
 
 /**
  * Server
@@ -166,5 +104,19 @@ const port = Number(process.env.PORT) || 3001;
 const host = process.env.HOST ?? '0.0.0.0';
 
 createServer(toNodeListener(app)).listen(port, host, () => {
-    console.log(`TOTP service listening on http://${host}:${port}`);
+    console.log(`🚀 TOTP service listening on http://${host}:${port}`);
+    console.log('');
+    console.log('📋 Available routes:');
+    console.log('  POST   /api/auth/register      - Register new user');
+    console.log('  POST   /api/auth/login         - User login');
+    console.log('  POST   /api/auth/token         - Create auth token');
+    console.log('  POST   /api/auth/revoke        - Revoke auth token');
+    console.log('  GET    /api/auth/user          - Get user info (protected)');
+    console.log('  GET    /api/totp               - List TOTP codes (protected)');
+    console.log('  POST   /api/management/totp    - Create TOTP (protected)');
+    console.log('  PUT    /api/management/totp    - Update TOTP (protected)');
+    console.log('  PATCH  /api/management/totp    - Update TOTP (protected)');
+    console.log('  DELETE /api/management/totp    - Delete TOTP (protected)');
+    console.log('  GET    /api/management/export  - Export TOTPs (protected)');
+    console.log('  POST   /api/management/import  - Import TOTPs (protected)');
 });
