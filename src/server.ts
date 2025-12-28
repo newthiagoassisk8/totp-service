@@ -2,7 +2,11 @@ import './dotenv-loader.js';
 
 import { createServer } from 'node:http';
 
-import { createApp, defineEventHandler, toNodeListener } from 'h3';
+import {
+    createApp,
+    defineEventHandler,
+    toNodeListener,
+} from 'h3';
 
 import createToken from './handlers/auth/create-token.js';
 import login from './handlers/auth/login.js';
@@ -119,4 +123,5 @@ createServer(toNodeListener(app)).listen(port, host, () => {
     console.log('  DELETE /api/management/totp    - Delete TOTP (protected)');
     console.log('  GET    /api/management/export  - Export TOTPs (protected)');
     console.log('  POST   /api/management/import  - Import TOTPs (protected)');
+    console.log('  POST   /api/public/generate-totp-code  - Public route to generate TOTP codes (auth is not required)');
 });
