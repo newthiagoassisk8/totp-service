@@ -1,94 +1,93 @@
 # TOTP Service
 
-Serviço completo de gerenciamento de códigos TOTP (Time-based One-Time Password) com autenticação e isolamento por usuário.
+Complete TOTP (Time-based One-Time Password) management service with authentication and per-user isolation.
 
-## 🚀 Funcionalidades
+## 🚀 Features
 
-- ✅ **Autenticação completa**: Registro, login, tokens com expiração
-- ✅ **Gerenciamento de TOTP**: CRUD completo (Create, Read, Update, Delete)
-- ✅ **Exportação/Importação**: Backup e restauração de TOTPs em JSON
-- ✅ **Isolamento por usuário**: Cada usuário gerencia apenas seus próprios TOTPs
-- ✅ **Segurança**: Rate limiting (120 req/min), bcrypt, CORS configurável
-- ✅ **PostgreSQL**: Persistência com Drizzle ORM e índices otimizados
+- ✅ **Complete authentication**: Registration, login, tokens with expiration
+- ✅ **TOTP management**: Full CRUD (Create, Read, Update, Delete)
+- ✅ **Export/Import**: Backup and restore TOTPs in JSON
+- ✅ **Per-user isolation**: Each user manages only their own TOTPs
+- ✅ **Security**: Rate limiting (120 req/min), bcrypt, configurable CORS
+- ✅ **PostgreSQL**: Persistence with Drizzle ORM and optimized indexes
 
-## 📋 Rotas Disponíveis
+## 📋 Available Routes
 
-### Autenticação (5 rotas)
-- `POST /api/auth/register` - Registrar novo usuário
-- `POST /api/auth/login` - Login de usuário
-- `POST /api/auth/token` - Criar token de autenticação
-- `POST /api/auth/revoke` - Revogar token
-- `GET /api/auth/user` - Informações do usuário (protegido)
+### Authentication (5 routes)
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `POST /api/auth/token` - Create authentication token
+- `POST /api/auth/revoke` - Revoke token
+- `GET /api/auth/user` - User information (protected)
 
-### TOTP (1 rota)
-- `GET /api/totp` - Listar códigos TOTP gerados (protegido)
+### TOTP (1 route)
+- `GET /api/totp` - List generated TOTP codes (protected)
 
-### Gerenciamento (5 rotas)
-- `POST /api/management/totp` - Criar TOTP (protegido)
-- `PUT/PATCH /api/management/totp` - Atualizar TOTP (protegido)
-- `DELETE /api/management/totp` - Deletar TOTP (protegido)
-- `GET /api/management/export` - Exportar TOTPs (protegido)
-- `POST /api/management/import` - Importar TOTPs (protegido)
+### Management (5 routes)
+- `POST /api/management/totp` - Create TOTP (protected)
+- `PUT/PATCH /api/management/totp` - Update TOTP (protected)
+- `DELETE /api/management/totp` - Delete TOTP (protected)
+- `GET /api/management/export` - Export TOTPs (protected)
+- `POST /api/management/import` - Import TOTPs (protected)
 
-**Total: 12 rotas funcionais**
+**Total: 12 functional routes**
 
 ## 🏁 Quick Start
 
 ```bash
-# 1. Instalar dependências
+# 1. Install dependencies
 npm install
 
-# 2. Configurar .env (copie de .env.example)
+# 2. Configure .env (copy from .env.example)
 cp .env.example .env
 
-# 3. Aplicar migrations
+# 3. Apply migrations
 npm run db:migrate
 
-# 4. Criar usuário demo
+# 4. Create demo user
 npm run db:seed
 
-# 5. Iniciar servidor
+# 5. Start server
 npm run dev
 ```
 
-O servidor inicia em `http://localhost:3001`
+The server starts at `http://localhost:3001`
 
-## 🧪 Testando
+## 🧪 Testing
 
-### Usando o token fixo do seed:
+### Using the fixed seed token:
 ```bash
 curl http://localhost:3001/api/totp \
   -H "Authorization: Bearer c8eeaabf3ef14ffc811cab37ba16753f"
 ```
 
-### Script de testes completo:
+### Complete test script:
 ```bash
 ./test-api.sh
 ```
 
-## 📚 Documentação
+## 📚 Documentation
 
-- **[QUICKSTART.md](QUICKSTART.md)** - Guia rápido de início
-- **[API_DOCS.md](API_DOCS.md)** - Documentação completa da API
-- **[IMPLEMENTACAO.md](IMPLEMENTACAO.md)** - Detalhes técnicos da implementação
-- **[UPDATE_NOTES.md](UPDATE_NOTES.md)** - Notas de atualização
+- **[QUICKSTART.md](QUICKSTART.md)** - Quick start guide
+- **[MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)** - Migrations usage guide
+- **[API_DOCS.md](API_DOCS.md)** - Complete API documentation
 
-## 🔑 Credenciais Padrão (Seed)
+## 🔑 Default Credentials (Seed)
 
 ```
 Email: demo@email.com
-Senha: pass123
-Token fixo: c8eeaabf3ef14ffc811cab37ba16753f
+Password: pass123
+Fixed token: c8eeaabf3ef14ffc811cab37ba16753f
 ```
 
-## 🛠️ Tecnologias
+## 🛠️ Technologies
 
 - **Node.js** + **TypeScript**
-- **H3** - Framework HTTP minimalista
+- **H3** - Minimalist HTTP framework
 - **Drizzle ORM** - Type-safe SQL
 - **PostgreSQL** - Database
-- **bcryptjs** - Hash de senhas
-- **totp-generator** - Geração de códigos TOTP
+- **bcryptjs** - Password hashing
+- **totp-generator** - TOTP code generation
 
 ## 📦 Deploy
 
@@ -97,11 +96,11 @@ npm run build
 npm run start
 ```
 
-Configure as variáveis de ambiente no servidor de produção:
-- `DATABASE_URL` - String de conexão PostgreSQL
-- `CORS_ALLOWED_ORIGINS` - Domínios permitidos (separados por vírgula)
-- `PORT` - Porta do servidor (padrão: 3001)
+Configure environment variables on production server:
+- `DATABASE_URL` - PostgreSQL connection string
+- `CORS_ALLOWED_ORIGINS` - Allowed domains (comma-separated)
+- `PORT` - Server port (default: 3001)
 
-## 📄 Licença
+## 📄 License
 
 MIT
