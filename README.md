@@ -91,6 +91,8 @@ Fixed token: c8eeaabf3ef14ffc811cab37ba16753f
 
 ## 📦 Deploy
 
+### Traditional Server
+
 ```bash
 npm run build
 npm run start
@@ -100,6 +102,26 @@ Configure environment variables on production server:
 - `DATABASE_URL` - PostgreSQL connection string
 - `CORS_ALLOWED_ORIGINS` - Allowed domains (comma-separated)
 - `PORT` - Server port (default: 3001)
+
+### Vercel (Serverless)
+
+This project is configured for Vercel deployment:
+
+```bash
+# Deploy to Vercel
+vercel
+
+# Deploy to production
+vercel --prod
+```
+
+**See [VERCEL_DEPLOY.md](VERCEL_DEPLOY.md) for complete deployment guide.**
+
+Key features for Vercel:
+- ✅ Serverless function ready (`api/index.ts`)
+- ✅ Vite build configuration
+- ✅ Optimized for edge deployment
+- ✅ CORS and rate limiting included
 
 ## 📄 License
 

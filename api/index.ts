@@ -1,0 +1,105 @@
+import '../src/dotenv-loader.js';
+
+import {
+    createApp,
+    defineEventHandler,
+    toNodeListener,
+} from 'h3';
+
+import createToken from '../src/handlers/auth/create-token.js';
+import login from '../src/handlers/auth/login.js';
+import register from '../src/handlers/auth/register.js';
+import revokeToken from '../src/handlers/auth/revoke-token.js';
+import userInfo from '../src/handlers/auth/user-info.js';
+import globalErrorHandler from '../src/handlers/core/globalErrorHandler.js';
+import exportTotps from '../src/handlers/management/export.js';
+import importTotps from '../src/handlers/management/import.js';
+import manageTotp from '../src/handlers/management/totp.js';
+import genPublicTotpCode from '../src/handlers/totp/gen-public-totp-code.js';
+import listTotp from '../src/handlers/totp/list-codes.js';
+import { rateLimit } from '../src/middleware/rate-limit.js';
+
+const app = createApp();
+
+/**
+ * CORS
+ */
+const allowedOrigins = String(process.env.CORS_ALLOWED_ORIGINS || '*')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+function isAllowedVercelSubdomain(origin: string) {
+    try {
+        const url = new URL(origin);
+        return url.hostname.endsWith('.vercel.app');
+    } catch {
+        return false;
+    }
+}
+
+function getCorsOrigin(requestOrigin?: string) {
+    if (allowedOrigins.includes('*')) return '*';
+    if (!requestOrigin) return '';
+    if (isAllowedVercelSubdomain(requestOrigin)) return requestOrigin;
+    return allowedOrigins.includes(requestOrigin) ? requestOrigin : '';
+}
+
+app.use(globalErrorHandler);
+
+/**
+ * Global CORS middleware
+ */
+app.use(
+    defineEventHandler((event) => {
+        const origin = typeof event.node.req.headers.origin === 'string' ? event.node.req.headers.origin : undefined;
+
+        const corsOrigin = getCorsOrigin(origin);
+
+        if (corsOrigin) {
+            event.node.res.setHeader('Access-Control-Allow-Origin', corsOrigin);
+            event.node.res.setHeader('Vary', 'Origin');
+        }
+
+        event.node.res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+        event.node.res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        event.node.res.setHeader('Access-Control-Max-Age', '86400');
+
+        if (event.node.req.method === 'OPTIONS') {
+            event.node.res.statusCode = 200;
+            return '';
+        }
+    })
+);
+
+/**
+ * Rate limiting
+ */
+app.use(defineEventHandler(rateLimit(120)));
+
+/**
+ * Routes
+ */
+
+// Auth routes (public)
+app.use('/api/auth/register', register);
+app.use('/api/auth/login', login);
+app.use('/api/auth/token', createToken);
+app.use('/api/auth/revoke', revokeToken);
+app.use('/api/auth/user', userInfo);
+
+// TOTP routes (protected)
+app.use('/api/totp', listTotp);
+
+// TOTP public routes (public not auth required)
+app.use('/api/public/generate-totp-code', genPublicTotpCode);
+
+// Management routes (protected)
+app.use('/api/management/totp', manageTotp);
+app.use('/api/management/export', exportTotps);
+app.use('/api/management/import', importTotps);
+
+/**
+ * Export for Vercel serverless
+ */
+export default toNodeListener(app);

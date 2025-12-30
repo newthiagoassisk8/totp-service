@@ -5,14 +5,15 @@
     "type": "module",
     "scripts": {
         "dev": "tsx watch src/server.ts",
-        "build": "tsc -p tsconfig.json",
+        "build": "vite build",
+        "build:tsc": "tsc -p tsconfig.json",
         "start": "node dist/server.js",
         "db:migrate": "drizzle-kit migrate",
         "db:generate": "drizzle-kit generate",
         "db:studio": "drizzle-kit studio",
         "db:check": "drizzle-kit check",
         "db:seed": "tsx src/db/seed.ts",
-        "vercel-build": "npm run db:migrate && npm run build"
+        "vercel-build": "echo 'Vercel build uses api/index.ts directly'"
     },
     "dependencies": {
         "bcryptjs": "^3.0.3",
@@ -31,6 +32,7 @@
         "drizzle-kit": "^0.31.8",
         "prettier": "^3.7.4",
         "tsx": "^4.20.5",
-        "typescript": "^5.9.2"
+        "typescript": "^5.9.2",
+        "vite": "^7.3.0"
     }
 }
