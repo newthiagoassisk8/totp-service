@@ -6,14 +6,15 @@
     "scripts": {
         "dev": "tsx watch src/server.ts",
         "build": "vite build",
+        "vercel-build": "vite build",
         "build:tsc": "tsc -p tsconfig.json",
-        "start": "node dist/server.js",
+        "start": "NODE_ENV=production node dist/server.js",
         "db:migrate": "drizzle-kit migrate",
         "db:generate": "drizzle-kit generate",
         "db:studio": "drizzle-kit studio",
         "db:check": "drizzle-kit check",
         "db:seed": "tsx src/db/seed.ts",
-        "vercel-build": "echo 'Vercel build uses api/index.ts directly'"
+        "vercel-build:aa": "echo 'Vercel build uses api/index.ts directly'"
     },
     "dependencies": {
         "bcryptjs": "^3.0.3",

@@ -71,6 +71,7 @@ curl http://localhost:3001/api/totp \
 - **[QUICKSTART.md](QUICKSTART.md)** - Quick start guide
 - **[MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)** - Migrations usage guide
 - **[API_DOCS.md](API_DOCS.md)** - Complete API documentation
+- **[VERCEL_DEPLOY.md](VERCEL_DEPLOY.md)** - Detailed Vercel deployment guide
 
 ## 🔑 Default Credentials (Seed)
 

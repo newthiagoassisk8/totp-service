@@ -1,20 +1,14 @@
 {
-    "version": 2,
-    "builds": [
+    "framework": "vite",
+    "buildCommand": "npm run build",
+    "outputDirectory": "dist",
+    "installCommand": "npm install",
+    "rewrites": [
         {
-            "src": "api/index.ts",
-            "use": "@vercel/node"
+            "source": "/(.*)",
+            "destination": "/api"
         }
     ],
-    "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "/api/index.ts"
-        }
-    ],
-    "env": {
-        "NODE_ENV": "production"
-    },
     "functions": {
         "api/index.ts": {
             "memory": 1024,
